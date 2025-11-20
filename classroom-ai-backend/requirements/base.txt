@@ -1,0 +1,36 @@
+# ================================
+# BASE REQUIREMENTS
+# Core API Framework & Database
+# ================================
+
+# Core API Framework
+fastapi==0.115.12
+uvicorn==0.34.2
+python-multipart==0.0.20
+pydantic==2.10.5
+
+# Security & Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+PyJWT==2.10.1
+bcrypt==4.2.1
+cryptography==44.0.0
+
+# Database
+sqlalchemy==2.0.32
+alembic==1.13.3
+aiosqlite==0.20.0
+
+# Utilities
+python-dotenv==1.0.1
+loguru==0.7.2
+requests==2.31.0
+python-dateutil==2.9.0
+pytz==2024.2
+
+# Data Serialization
+joblib==1.4.2
+
+# Monitoring
+psutil==6.1.0
+rich==13.9.4

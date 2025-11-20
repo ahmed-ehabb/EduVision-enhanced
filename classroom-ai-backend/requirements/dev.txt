@@ -1,0 +1,21 @@
+# ================================
+# DEVELOPMENT REQUIREMENTS
+# Testing, Linting, Formatting
+# ================================
+
+-r ml.txt
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.0
+pytest-cov==6.0.0
+memory-profiler==0.61.0
+
+# Code Quality
+black==24.10.0
+flake8==7.1.1
+mypy==1.6.0
+
+# Development Tools
+ipython
+jupyter

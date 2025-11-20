@@ -1,0 +1,43 @@
+/* Teacher Dashboard Styles */
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-secondary);
+}
+
+.empty-state svg {
+  margin: 0 auto 1.5rem;
+  opacity: 0.5;
+}
+
+.empty-state h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Session Code in Table */
+.table .session-code {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  background-color: var(--color-dark);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  border-radius: var(--radius-sm);
+  font-family: 'Courier New', monospace;
+}
+
+/* Modal Specific Adjustments */
+.modal form .modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}

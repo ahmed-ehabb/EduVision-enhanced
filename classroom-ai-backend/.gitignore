@@ -1,0 +1,189 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+log/
+
+# Model files and cache
+*.bin
+*.safetensors
+*.gguf
+*.pt
+*.pth
+.cache/
+models/
+checkpoints/
+face_models/
+engagement_models/
+translation_models/
+
+# Hugging Face cache
+~/.cache/huggingface/
+
+# Audio files (test data)
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg
+audio_samples/
+test_audio/
+recorded_audio/
+
+# Generated files and outputs
+generated_notes.md
+output/
+results/
+exports/
+transcripts/
+translations/
+quiz_outputs/
+
+# Textbook PDFs (user-provided, not tracked)
+*.pdf
+# Exception: Keep sample textbook if provided
+!sample_textbook.pdf
+
+# Test data and temporary files
+test_data/
+tmp/
+temp/
+*.tmp
+test.db
+classroom_ai.db
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+secrets/
+firebase_credentials.json
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Testing
+.pytest_cache/
+.tox/
+.coverage/
+test-results/
+*test_results.json
+test_outputs/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Documentation builds
+docs/_build/
+site/
+
+# GPU memory dumps and debug files
+gpu_debug/
+memory_dumps/
+cuda_installer.exe
+
+# User uploads and data
+uploads/
+user_data/
+facedataset/
+student_images/
+
+# Data directory (includes models, uploads, cache, resources)
+data/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Frontend build
+build/
+dist/
+.next/
+out/
+.nuxt/
+.vuepress/dist
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+postgres_data/
+
+# Deployment
+.vercel
+.netlify
+.firebase/
+.elasticbeanstalk/
+
+# Backup and old versions
+backup_*/
+*-old/
+*.backup
+backup_*.ps1
+*.old
+requirements.txt.old
+Dockerfile.old
+docker-compose.yml.old
+classroom-ai-backend-backup*.zip
+
+# Misc
+.DS_Store
+*.pem
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local

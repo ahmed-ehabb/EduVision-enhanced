@@ -1,0 +1,104 @@
+2025-11-06 09:40:23.739434: I tensorflow/core/util/port.cc:113] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING:tensorflow:From C:\Users\Ahmed\AppData\Local\Programs\Python\Python311\Lib\site-packages\keras\src\losses.py:2976: The name tf.losses.sparse_softmax_cross_entropy is deprecated. Please use tf.compat.v1.losses.sparse_softmax_cross_entropy instead.
+
+INFO:datasets:PyTorch version 2.5.1+cu121 available.
+INFO:datasets:TensorFlow version 2.15.0 available.
+INFO:datasets:JAX version 0.6.2 available.
+INFO:__main__:[OK] Loaded 50 transcript segments
+INFO:__main__:[OK] Loaded 12 textbook paragraphs
+INFO:content_alignment_v2:[ContentAlignment] Initializing with model: paraphrase-MiniLM-L6-v2
+INFO:content_alignment_v2:[ContentAlignment] Loading SBERT model: paraphrase-MiniLM-L6-v2
+INFO:sentence_transformers.SentenceTransformer:Use pytorch device_name: cuda:0
+INFO:sentence_transformers.SentenceTransformer:Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+INFO:content_alignment_v2:[ContentAlignment] Model loaded successfully
+INFO:content_alignment_v2:[ContentAlignment] Encoding 12 textbook paragraphs...
+INFO:content_alignment_v2:[ContentAlignment] Textbook embeddings created
+INFO:content_alignment_v2:[ContentAlignment] Encoding 50 transcript segments...
+INFO:content_alignment_v2:[ContentAlignment] Analysis complete. Coverage score: 10.00%
+INFO:content_alignment_v2:[ContentAlignment] Initializing with model: paraphrase-MiniLM-L6-v2
+INFO:content_alignment_v2:[ContentAlignment] Loading SBERT model: paraphrase-MiniLM-L6-v2
+INFO:sentence_transformers.SentenceTransformer:Use pytorch device_name: cuda:0
+INFO:sentence_transformers.SentenceTransformer:Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+INFO:content_alignment_v2:[ContentAlignment] Model loaded successfully
+INFO:content_alignment_v2:[ContentAlignment] Encoding 12 textbook paragraphs...
+INFO:content_alignment_v2:[ContentAlignment] Textbook embeddings created
+INFO:content_alignment_v2:[ContentAlignment] Encoding 50 transcript segments...
+INFO:content_alignment_v2:[ContentAlignment] Analysis complete. Coverage score: 30.00%
+
+======================================================================
+Testing Content Alignment Threshold Improvement
+======================================================================
+
+[1] Loading test data...
+
+[2] Running analysis with OLD thresholds (0.75 / 0.50)...
+  [OK] Old coverage: 10.0%
+
+[3] Running analysis with NEW thresholds (0.60 / 0.40)...
+  [OK] New coverage: 30.0%
+
+======================================================================
+THRESHOLD COMPARISON
+======================================================================
+
+OLD THRESHOLDS (0.75 / 0.50):
+  Coverage Score: 10.0%
+  Fully Covered: 1 (2.0%)
+  Partially Covered: 8 (16.0%)
+  Off-topic: 41 (82.0%)
+
+NEW THRESHOLDS (0.60 / 0.40):
+  Coverage Score: 30.0%
+  Fully Covered: 4 (8.0%)
+  Partially Covered: 22 (44.0%)
+  Off-topic: 24 (48.0%)
+
+IMPROVEMENT:
+  Coverage Score: +20.0% (10.0% -> 30.0%)
+  Fully Covered: +3 segments
+  Partially Covered: +14 segments
+  Off-topic: -17 segments
+
+SUCCESS CRITERIA:
+  [OK] Coverage >=18.0%: 30.0%
+  [OK] Coverage improved: +20.0%
+
+======================================================================
+SAMPLE RECLASSIFICATIONS
+======================================================================
+
+Found 17 segments reclassified from Off-topic:
+
+Segment 1:
+  Text: I'm an instructor of psychology at Northeast State....
+  Similarity: 0.460
+  Off-topic -> Partially Covered
+
+Segment 3:
+  Text: It gets its root psych or psyche, which means soul, ology of course being the st...
+  Similarity: 0.431
+  Off-topic -> Partially Covered
+
+Segment 4:
+  Text: Psychology gets its start officially in 1879 thanks to the help of Wilhelm Boont...
+  Similarity: 0.483
+  Off-topic -> Partially Covered
+
+Segment 6:
+  Text: Structuralism ultimately the reason that Boont came how mental activities help u...
+  Similarity: 0.413
+  Off-topic -> Partially Covered
+
+Segment 7:
+  Text: Functionalism truly emphasized on how mental activities contribute to basic envi...
+  Similarity: 0.459
+  Off-topic -> Partially Covered
+
+======================================================================
+SUMMARY
+======================================================================
+
+[SUCCESS] Threshold adjustment improved coverage to 30.0%
+  This is a 20.0% improvement over baseline
+
+Note: For >40% coverage, actual textbook content (not generic paragraphs) is required.

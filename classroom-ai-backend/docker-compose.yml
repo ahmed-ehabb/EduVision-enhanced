@@ -1,0 +1,199 @@
+version: "3.8"
+
+services:
+  # ============================================
+  # MAIN APPLICATION SERVICE
+  # ============================================
+  classroom-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile.optimized
+      target: ${BUILD_TARGET:-development}
+      args:
+        - PYTHON_VERSION=3.11
+    image: classroom-ai:${VERSION:-latest}
+    container_name: classroom-ai-backend
+
+    ports:
+      - "${API_PORT:-8001}:8001"
+
+    volumes:
+      # Development: Mount code for live reload
+      - ./backend:/app/backend:${MOUNT_MODE:-rw}
+      - ./main.py:/app/main.py:${MOUNT_MODE:-rw}
+
+      # Data persistence
+      - ./data:/app/data
+
+      # AI models cache (separate volume for easy management)
+      - ai-models-cache:/root/.cache/huggingface
+
+      # Logs
+      - ./logs:/app/logs
+
+    environment:
+      # Application settings
+      - DEBUG=${DEBUG:-True}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - RELOAD=${RELOAD:-True}
+
+      # GPU Configuration
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+      - GPU_MEMORY_FRACTION=${GPU_MEMORY_FRACTION:-0.8}
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+
+      # Model Configuration
+      - ENABLE_PHASE_MANAGEMENT=True
+      - AUTO_UNLOAD_MODELS=True
+      - ENABLE_FP16=true
+
+      # HuggingFace Cache
+      - HF_HOME=/root/.cache/huggingface
+      - TRANSFORMERS_CACHE=/root/.cache/huggingface
+
+      # Database
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/psychology_course.db}
+
+      # Redis (optional)
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - ENABLE_CACHE=${ENABLE_CACHE:-True}
+
+    env_file:
+      - .env
+
+    # GPU resource allocation
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT:-12G}
+        reservations:
+          memory: ${MEMORY_RESERVATION:-6G}
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-1}
+              capabilities: [gpu]
+
+    networks:
+      - classroom-ai-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ============================================
+  # REDIS CACHE SERVICE
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: classroom-ai-redis
+
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+    volumes:
+      - redis-data:/data
+
+    command: >
+      redis-server
+      --maxmemory ${REDIS_MAX_MEMORY:-512mb}
+      --maxmemory-policy allkeys-lru
+      --save 60 1000
+      --appendonly yes
+
+    networks:
+      - classroom-ai-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ============================================
+  # NGINX REVERSE PROXY (Production Only)
+  # ============================================
+  nginx:
+    image: nginx:alpine
+    container_name: classroom-ai-nginx
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx
+
+    depends_on:
+      - classroom-ai
+
+    networks:
+      - classroom-ai-network
+
+    restart: unless-stopped
+
+    profiles:
+      - production
+
+  # ============================================
+  # MODEL DOWNLOADER (Setup Only)
+  # ============================================
+  model-downloader:
+    build:
+      context: .
+      dockerfile: Dockerfile.optimized
+      target: model-downloader
+
+    container_name: model-downloader
+
+    volumes:
+      - ai-models-cache:/models/.cache/huggingface
+
+    environment:
+      - HF_HOME=/models/.cache/huggingface
+      - TRANSFORMERS_CACHE=/models/.cache/huggingface
+
+    networks:
+      - classroom-ai-network
+
+    profiles:
+      - setup
+
+# ============================================
+# VOLUMES
+# ============================================
+volumes:
+  # AI models cache (persistent across container rebuilds)
+  ai-models-cache:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MODELS_PATH:-./models_cache}
+
+  # Redis data
+  redis-data:
+    driver: local
+
+# ============================================
+# NETWORKS
+# ============================================
+networks:
+  classroom-ai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distraction Detection System - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            max-width: 1600px;
+            backdrop-filter: blur(10px);
+        }
+        .status-card {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .status-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #495057;
+        }
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .running-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .running-true { background-color: #28a745; animation: pulse 2s infinite; }
+        .running-false { background-color: #dc3545; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .alert-item {
+            border-left: 4px solid #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+            margin-bottom: 8px;
+            border-radius: 0 8px 8px 0;
+        }
+        .grade-badge {
+            font-size: 1.2rem;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+        .grade-A { background: linear-gradient(45deg, #28a745, #20c997); }
+        .grade-B { background: linear-gradient(45deg, #17a2b8, #6f42c1); }
+        .grade-C { background: linear-gradient(45deg, #ffc107, #fd7e14); }
+        .grade-D { background: linear-gradient(45deg, #dc3545, #e83e8c); }
+        
+        .progress-animated {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 3s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .warning-level-0 { color: #28a745; }
+        .warning-level-1 { color: #ffc107; }
+        .warning-level-2 { color: #fd7e14; }
+        .warning-level-3 { color: #dc3545; }
+        
+        .console-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        /* Camera Feed Styles */
+        .camera-container {
+            position: relative;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .camera-feed {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .camera-placeholder {
+            background: linear-gradient(45deg, #343a40, #495057);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            flex-direction: column;
+        }
+        
+        .camera-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .camera-controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+        
+        .camera-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .camera-active { background-color: #28a745; animation: pulse 2s infinite; }
+        .camera-inactive { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="dashboard-container p-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-0"><i class="fas fa-eye me-2"></i>Distraction Detection System</h1>
+                    <p class="text-muted mb-0">Real-time Student Monitoring Dashboard</p>
+                </div>
+                <div>
+                    <span class="running-indicator" id="statusIndicator"></span>
+                    <span id="systemStatus">Checking...</span>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card status-card">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-cogs me-2"></i>System Controls</h5>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn btn-success" id="startBtn" onclick="startDetection()">
+                                    <i class="fas fa-play me-1"></i>Start Detection
+                                </button>
+                                <button class="btn btn-danger" id="stopBtn" onclick="stopDetection()">
+                                    <i class="fas fa-stop me-1"></i>Stop Detection
+                                </button>
+                                <button class="btn btn-primary" id="startCameraBtn" onclick="startCamera()">
+                                    <i class="fas fa-video me-1"></i>Start Camera
+                                </button>
+                                <button class="btn btn-secondary" id="stopCameraBtn" onclick="stopCamera()">
+                                    <i class="fas fa-video-slash me-1"></i>Stop Camera
+                                </button>
+                                <button class="btn btn-warning" onclick="testCamera()">
+                                    <i class="fas fa-vial me-1"></i>Test Camera
+                                </button>
+                                <button class="btn btn-info" onclick="testOutputs()">
+                                    <i class="fas fa-vial me-1"></i>Test Outputs
+                                </button>
+                                <button class="btn btn-secondary" onclick="refreshData()">
+                                    <i class="fas fa-sync me-1"></i>Refresh Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Camera Feed Section -->
+            <div class="row mb-4">
+                <div class="col-lg-6 mb-4">
+                    <div class="card status-card h-100">
+                        <div class="card-header bg-dark text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-video me-2"></i>Camera Feed
+                                <span class="camera-status" id="cameraStatusIndicator"></span>
+                                <span id="cameraStatusText">Inactive</span>
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="camera-container">
+                                <div class="camera-placeholder" id="cameraPlaceholder">
+                                    <i class="fas fa-video-slash fa-3x mb-3 text-muted"></i>
+                                    <h5>Camera Not Active</h5>
+                                    <p class="text-muted">Click "Start Camera" to begin video feed</p>
+                                </div>
+                                <img id="cameraFeed" class="camera-feed" style="display: none;" />
+                                <div class="camera-overlay" id="cameraOverlay" style="display: none;">
+                                    <span id="cameraTime">--:--:--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Student Selection -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card status-card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-users me-2"></i>Active Students</h5>
+                            <select class="form-select mb-3" id="studentSelect" onchange="selectStudent()">
+                                <option value="">Select a student...</option>
+                            </select>
+                            
+                            <!-- Quick Status Display -->
+                            <div class="row text-center" id="quickStatus" style="display: none;">
+                                <div class="col-4">
+                                    <div class="metric-value" style="font-size: 1.5rem;" id="quickEngagement">-</div>
+                                    <div class="metric-label" style="font-size: 0.7rem;">Status</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-value" style="font-size: 1.5rem;" id="quickTime">-</div>
+                                    <div class="metric-label" style="font-size: 0.7rem;">Session</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-value" style="font-size: 1.5rem;" id="quickScore">-</div>
+                                    <div class="metric-label" style="font-size: 0.7rem;">Score</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard -->
+            <div class="row" id="dashboardContent" style="display: none;">
+                <!-- Student Interface -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card status-card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Student Dashboard</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Live Status -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="text-center">
+                                        <div class="metric-value" id="studentEngagement">-</div>
+                                        <div class="metric-label">Current Status</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-center">
+                                        <div class="metric-value" id="sessionTime">-</div>
+                                        <div class="metric-label">Session Time</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Warning System -->
+                            <div class="alert alert-info" id="warningSystem" style="display: none;">
+                                <h6><i class="fas fa-exclamation-triangle me-2"></i>Warning</h6>
+                                <div id="warningMessage">-</div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small>Level: <span id="warningLevel">0</span></small>
+                                    <small>Sound: <span id="soundEnabled">No</span></small>
+                                </div>
+                            </div>
+
+                            <!-- Personal Metrics -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Engagement Score</h6>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar progress-animated" id="engagementProgress" 
+                                             style="width: 0%"></div>
+                                    </div>
+                                    <small class="text-muted">
+                                        <span id="engagementScore">0</span>% 
+                                        (<span id="attentionTrend">stable</span>)
+                                    </small>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Behavioral Indicators</h6>
+                                    <div class="row small">
+                                        <div class="col-6">Blinks: <span id="blinkRate">0</span></div>
+                                        <div class="col-6">Yawns: <span id="yawnCount">0</span></div>
+                                        <div class="col-6">Head Moves: <span id="headMoves">0</span></div>
+                                        <div class="col-6">Posture: <span id="posture">100</span>%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Interface -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card status-card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-chalkboard-teacher me-2"></i>Teacher Dashboard</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Class Overview -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="metric-value" id="totalStudents">-</div>
+                                        <div class="metric-label">Students</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="metric-value" id="avgEngagement">-</div>
+                                        <div class="metric-label">Avg. Score</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="metric-value" id="activeAlerts">-</div>
+                                        <div class="metric-label">Alerts</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Student Report -->
+                            <div class="mb-3">
+                                <h6>Student Report</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Overall Score: <span id="overallScore">-</span>%</span>
+                                    <span class="badge grade-badge" id="gradeBadge">-</span>
+                                </div>
+                                <small class="text-muted">Trend: <span id="trendIndicator">-</span></small>
+                            </div>
+
+                            <!-- Active Alerts -->
+                            <div>
+                                <h6>Active Alerts</h6>
+                                <div id="alertsList" class="small">
+                                    <div class="text-muted">No active alerts</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Console Output -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card status-card">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fas fa-terminal me-2"></i>System Console</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="console-output" id="consoleOutput">
+                                System ready. Use controls above to start detection or test outputs.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let updateInterval;
+        let selectedStudent = '';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSystemStatus();
+            loadStudents();
+            startAutoUpdate();
+        });
+
+        function updateSystemStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    const indicator = document.getElementById('statusIndicator');
+                    const status = document.getElementById('systemStatus');
+                    
+                    indicator.className = `running-indicator running-${data.running}`;
+                    status.textContent = data.running ? 'System Running' : 'System Stopped';
+                    
+                    document.getElementById('startBtn').disabled = data.running;
+                    document.getElementById('stopBtn').disabled = !data.running;
+                    
+                    // Update camera status
+                    updateCameraStatus();
+                });
+        }
+
+        function updateCameraStatus() {
+            fetch('/api/camera-status')
+                .then(response => response.json())
+                .then(data => {
+                    const indicator = document.getElementById('cameraStatusIndicator');
+                    const statusText = document.getElementById('cameraStatusText');
+                    const cameraFeed = document.getElementById('cameraFeed');
+                    const placeholder = document.getElementById('cameraPlaceholder');
+                    const overlay = document.getElementById('cameraOverlay');
+                    
+                    if (data.active) {
+                        indicator.className = 'camera-status camera-active';
+                        statusText.textContent = 'Active';
+                        
+                        // Show video feed
+                        cameraFeed.src = '/video_feed?' + new Date().getTime();
+                        cameraFeed.style.display = 'block';
+                        placeholder.style.display = 'none';
+                        overlay.style.display = 'block';
+                        
+                        // Update camera controls
+                        document.getElementById('startCameraBtn').disabled = true;
+                        document.getElementById('stopCameraBtn').disabled = false;
+                        
+                        // Update overlay time
+                        updateCameraTime();
+                    } else {
+                        indicator.className = 'camera-status camera-inactive';
+                        statusText.textContent = 'Inactive';
+                        
+                        // Hide video feed
+                        cameraFeed.style.display = 'none';
+                        placeholder.style.display = 'flex';
+                        overlay.style.display = 'none';
+                        
+                        // Update camera controls
+                        document.getElementById('startCameraBtn').disabled = false;
+                        document.getElementById('stopCameraBtn').disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating camera status:', error);
+                });
+        }
+
+        function updateCameraTime() {
+            const timeElement = document.getElementById('cameraTime');
+            if (timeElement) {
+                timeElement.textContent = new Date().toLocaleTimeString();
+            }
+        }
+
+        function startCamera() {
+            addToConsole('Starting camera feed...');
+            fetch('/api/start-camera', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    addToConsole(data.message);
+                    if (data.status === 'started') {
+                        // Small delay to allow camera to initialize
+                        setTimeout(updateCameraStatus, 500);
+                    }
+                })
+                .catch(error => {
+                    addToConsole(`❌ Failed to start camera: ${error}`);
+                });
+        }
+
+        function stopCamera() {
+            addToConsole('Stopping camera feed...');
+            fetch('/api/stop-camera', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    addToConsole(data.message);
+                    updateCameraStatus();
+                })
+                .catch(error => {
+                    addToConsole(`❌ Failed to stop camera: ${error}`);
+                });
+        }
+
+        function loadStudents() {
+            fetch('/api/students')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('studentSelect');
+                    select.innerHTML = '<option value="">Select a student...</option>';
+                    
+                    data.students.forEach(student => {
+                        const option = document.createElement('option');
+                        option.value = student;
+                        option.textContent = student;
+                        select.appendChild(option);
+                    });
+                });
+        }
+
+        function selectStudent() {
+            selectedStudent = document.getElementById('studentSelect').value;
+            if (selectedStudent) {
+                document.getElementById('dashboardContent').style.display = 'block';
+                document.getElementById('quickStatus').style.display = 'flex';
+                updateStudentData();
+            } else {
+                document.getElementById('dashboardContent').style.display = 'none';
+                document.getElementById('quickStatus').style.display = 'none';
+            }
+        }
+
+        function updateStudentData() {
+            if (!selectedStudent) return;
+
+            // Update student dashboard
+            fetch(`/api/student-data/${selectedStudent}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('studentEngagement').textContent = data.live_status.current_engagement;
+                    document.getElementById('sessionTime').textContent = data.live_status.session_time;
+                    
+                    // Warning system
+                    const warningLevel = data.warning_system.level;
+                    const warningDiv = document.getElementById('warningSystem');
+                    if (warningLevel > 0) {
+                        warningDiv.style.display = 'block';
+                        document.getElementById('warningMessage').textContent = data.warning_system.message;
+                        document.getElementById('warningLevel').textContent = warningLevel;
+                        document.getElementById('warningLevel').className = `warning-level-${warningLevel}`;
+                        document.getElementById('soundEnabled').textContent = data.warning_system.sound_enabled ? 'Yes' : 'No';
+                    } else {
+                        warningDiv.style.display = 'none';
+                    }
+                    
+                    // Personal metrics
+                    const score = data.personal_metrics.engagement_score;
+                    document.getElementById('engagementScore').textContent = score;
+                    document.getElementById('engagementProgress').style.width = score + '%';
+                    document.getElementById('attentionTrend').textContent = data.personal_metrics.attention_trend;
+                    
+                    // Quick status display
+                    document.getElementById('quickEngagement').textContent = data.live_status.current_engagement;
+                    document.getElementById('quickTime').textContent = data.live_status.session_time;
+                    document.getElementById('quickScore').textContent = score + '%';
+                    
+                    // Behavioral indicators
+                    const behavioral = data.personal_metrics.behavioral_indicators;
+                    document.getElementById('blinkRate').textContent = behavioral.blink_rate;
+                    document.getElementById('yawnCount').textContent = behavioral.yawn_count;
+                    document.getElementById('headMoves').textContent = behavioral.head_movements;
+                    document.getElementById('posture').textContent = behavioral.posture_score;
+                });
+
+            // Update teacher dashboard
+            fetch(`/api/teacher-data/${selectedStudent}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Class overview
+                    document.getElementById('totalStudents').textContent = data.class_overview.total_students;
+                    document.getElementById('avgEngagement').textContent = data.class_overview.average_engagement + '%';
+                    document.getElementById('activeAlerts').textContent = data.class_overview.alerts_active;
+                    
+                    // Student report
+                    const report = data.student_report.student_report.session_summary;
+                    document.getElementById('overallScore').textContent = report.overall_score;
+                    document.getElementById('trendIndicator').textContent = report.trend;
+                    
+                    const gradeBadge = document.getElementById('gradeBadge');
+                    gradeBadge.textContent = report.grade;
+                    gradeBadge.className = `badge grade-badge grade-${report.grade.charAt(0)}`;
+                    
+                    // Active alerts
+                    const alertsList = document.getElementById('alertsList');
+                    if (data.active_alerts.length > 0) {
+                        alertsList.innerHTML = data.active_alerts.map(alert => 
+                            `<div class="alert-item p-2 mb-1">
+                                <strong>[${alert.alert_level}]</strong> ${alert.message}
+                                <br><small>Time: ${alert.timestamp}</small>
+                            </div>`
+                        ).join('');
+                    } else {
+                        alertsList.innerHTML = '<div class="text-muted">No active alerts</div>';
+                    }
+                });
+        }
+
+        function startDetection() {
+            addToConsole('Starting detection system...');
+            fetch('/api/start', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    addToConsole(data.message);
+                    updateSystemStatus();
+                });
+        }
+
+        function stopDetection() {
+            addToConsole('Stopping detection system...');
+            fetch('/api/stop', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    addToConsole(data.message);
+                    updateSystemStatus();
+                });
+        }
+
+        function testCamera() {
+            addToConsole('Testing camera...');
+            fetch('/api/test-camera')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.camera_available) {
+                        addToConsole(`✅ ${data.message} (${data.frame_size})`);
+                    } else {
+                        addToConsole(`❌ ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    addToConsole(`❌ Camera test failed: ${error}`);
+                });
+        }
+
+        function testOutputs() {
+            addToConsole('Running test outputs...');
+            fetch('/api/test-outputs', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    addToConsole(data.message);
+                    if (data.status === 'success') {
+                        setTimeout(() => {
+                            loadStudents();
+                            addToConsole('Test outputs completed. Check student selection dropdown.');
+                        }, 1000);
+                    }
+                });
+        }
+
+        function refreshData() {
+            updateSystemStatus();
+            loadStudents();
+            if (selectedStudent) {
+                updateStudentData();
+            }
+            addToConsole('Data refreshed.');
+        }
+
+        function startAutoUpdate() {
+            updateInterval = setInterval(() => {
+                updateSystemStatus();
+                loadStudents();
+                if (selectedStudent) {
+                    updateStudentData();
+                }
+                // Update camera time if active
+                const cameraActive = document.getElementById('cameraFeed').style.display === 'block';
+                if (cameraActive) {
+                    updateCameraTime();
+                }
+            }, 3000); // Update every 3 seconds
+        }
+
+        function addToConsole(message) {
+            const console = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            console.innerHTML += `\n[${timestamp}] ${message}`;
+            console.scrollTop = console.scrollHeight;
+        }
+    </script>
+</body>
+</html> 

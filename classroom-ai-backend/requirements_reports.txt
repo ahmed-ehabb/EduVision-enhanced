@@ -1,0 +1,11 @@
+# Report Generation Dependencies
+# ================================
+
+# PDF generation
+reportlab>=4.0.0
+
+# Plotting and charts
+matplotlib>=3.7.0
+
+# Already in main requirements but listed for reference
+# numpy>=1.24.0
