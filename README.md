@@ -288,7 +288,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For questions, issues, or contributions:
 - **GitHub Issues**: [Create an issue](https://github.com/yourusername/EduVision-enhanced/issues)
-- **Email**: ahmed@example.com
+
 
 ---
 
